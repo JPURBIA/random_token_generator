@@ -2,6 +2,7 @@
 POOL_MAX_SIZE = 5
 TOKEN_LIFETIME = 60  # seconds
 KEEP_ALIVE_INTERVAL = 300  # seconds
+KEEP_ALIVE_BATCH_SIZE = 100 # number of tokens to process at a time for bulk update expiry
 
 # Redis DB config
 REDIS_DB = {

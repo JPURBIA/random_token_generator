@@ -3,7 +3,8 @@ from flask import Flask, request, jsonify
 from flasgger import Swagger
 from redis_client import RedisClient
 from config import (
-    TOKEN_POOL_KEY, FREE_TOKEN_KEY_FORMAT, ASSIGNED_TOKEN_KEY_FORMAT, KEEP_ALIVE_INTERVAL, POOL_MAX_SIZE, TOKEN_LIFETIME
+    TOKEN_POOL_KEY, FREE_TOKEN_KEY_FORMAT, ASSIGNED_TOKEN_KEY_FORMAT, KEEP_ALIVE_INTERVAL,
+    POOL_MAX_SIZE, TOKEN_LIFETIME, KEEP_ALIVE_BATCH_SIZE
 )
 
 app = Flask(__name__)
@@ -240,11 +241,32 @@ def keep_alive():
     # Making token an optional parameter
     # If token is not provided in the request, then update keep-alive time for all tokens in the pool
     if not token:
-        success_cnt = 0
-        pool_tokens = redisclient.keys(FREE_TOKEN_KEY_FORMAT.format(token="*"))
-        for pool_token in pool_tokens:
-            pool_token = pool_token.split(":")[1]
-            success_cnt += int(redisclient.expire(FREE_TOKEN_KEY_FORMAT.format(token=pool_token), KEEP_ALIVE_INTERVAL))
+        lua_script = """
+            local keys_pattern = KEYS[1]
+            local expiry_time = tonumber(ARGV[1])
+            local batch_size = ARGV[2]
+            local cursor = "0"
+            local count = 0  -- Counter for successfully set expiry
+
+            repeat
+                -- Scan the keys matching the pattern
+                local result = redis.call("SCAN", cursor, "MATCH", keys_pattern, "COUNT", batch_size)
+                cursor = result[1]
+                local keys = result[2]
+
+                -- Iterate through the matched keys and set expiry
+                for _, key in ipairs(keys) do
+                    local success = redis.call("EXPIRE", key, expiry_time)
+                    if success == 1 then
+                        count = count + 1  -- Increment count for successful expiry
+                    end
+                end
+            until cursor == "0"
+
+            -- Return the count of keys with successfully set expiry
+            return count
+        """
+        success_cnt = redisclient.eval(lua_script, 1, FREE_TOKEN_KEY_FORMAT.format(token="*"), KEEP_ALIVE_INTERVAL, KEEP_ALIVE_BATCH_SIZE)
         return jsonify({"message": f"TTL extended successfully for {success_cnt} tokens"}), http.HTTPStatus.OK
         
     # Else if token is provided just update the TTL for that token
