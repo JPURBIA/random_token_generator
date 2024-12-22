@@ -3,6 +3,8 @@ POOL_MAX_SIZE = 5
 TOKEN_LIFETIME = 60  # seconds
 KEEP_ALIVE_INTERVAL = 300  # seconds
 KEEP_ALIVE_BATCH_SIZE = 100 # number of tokens to process at a time for bulk update expiry
+CLEANUP_LOCK_TIMEOUT = 60 # seconds
+CLEANUP_WAIT_TIME = 5
 
 # Redis DB config
 REDIS_DB = {
@@ -20,4 +22,5 @@ except ImportError as e:
 TOKEN_POOL_KEY = "token_pool"  # Set of all tokens
 ASSIGNED_TOKEN_KEY_FORMAT = "assign:{token}"
 FREE_TOKEN_KEY_FORMAT = "pool:{token}"
+CLEANUP_LOCK_KEY = "cleanup_lock"
 

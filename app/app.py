@@ -282,4 +282,3 @@ def keep_alive():
             return jsonify({"message": f"Token {token} TTL extended successfully"}), http.HTTPStatus.OK
     
     return jsonify({"error": "Token not found"}), http.HTTPStatus.NOT_FOUND
-
