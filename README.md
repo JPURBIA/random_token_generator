@@ -14,6 +14,7 @@ This is a Flask-based application for managing a pool of tokens with Redis as th
 |   |-- config.py            # Application configuration file
 |   |-- local_config.py      # Local configuration overrides
 |   |-- event_listener.py    # Redis event listener for token expiration
+|   |-- initial_cleanup.py   # Acquires a lock on Redis set to cleanup old stale tokens
 |   |-- redis_client.py      # Redis client connection helper
 |-- .gitignore               # Git ignore file
 |-- README.md                # Documentation file (this file)
@@ -49,6 +50,12 @@ This is a Flask-based application for managing a pool of tokens with Redis as th
 - Listens to Redis key expiration events.
 - Handles expired tokens by removing them from the pool.
 - Runs as a separate daemon thread.
+
+#### `initial_cleanup.py`
+
+- Acquires a lock over redis set, so that other instances don't repeat cleanup.
+- Removes all the token which are not in the pool but might be there in the storage set.
+- Every instance either runs the cleanup before startup or wait for the cleanup to complete before startup.
 
 #### `redis_client.py`
 
