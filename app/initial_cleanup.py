@@ -24,7 +24,6 @@ def initiailize_cleanup_with_lock():
             if invalid_tokens:
                 redisclient.srem(TOKEN_POOL_KEY, *invalid_tokens)
                 print(f"Removed invalid tokens from pool: {invalid_tokens}")
-            time.sleep(20)
         finally:
             redisclient.delete(CLEANUP_LOCK_KEY)
     else:
