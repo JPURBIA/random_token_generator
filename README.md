@@ -101,7 +101,7 @@ pip install -r requirements.txt
 ### 5. Start the Flask Application
 
 ```bash
-flask run --host 0.0.0.0 --port 5000
+python3 app/main.py --host 0.0.0.0 --port 5000
 ```
 
 ### 6. Start the Event Listener
@@ -148,7 +148,7 @@ python3 app/event_listener.py
 
 ## Event Listener
 
-The `event_listener.py` listens to Redis key expiration events for keys matching the pattern `pool:*`. When a token expires, it ensures the token is removed from the pool to avoid reassigning invalid tokens.
+The `event_listener.py` listens to Redis key expiration events for keys matching the pattern `pool:*` and `assign:*`. When a token expires, it ensures the token is removed from the pool or readded to the pool respectively.
 
 ## Logging
 
